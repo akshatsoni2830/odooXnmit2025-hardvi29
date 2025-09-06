@@ -4,7 +4,7 @@ const admin = require('firebase-admin');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // Initialize Firebase Admin only if credentials are set
 if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
@@ -16,21 +16,33 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173'
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Import routes
 const projectsRouter = require('./routes/projects');
+const membersRouter = require('./routes/members');
+const tasksRouter = require('./routes/tasks');
+const commentsRouter = require('./routes/comments');
+const notificationsRouter = require('./routes/notifications');
 
 // Routes
 app.get('/health', (req, res) => {
   res.json({ status: "ok" });
 });
 
+app.get('/api/hello', (req, res) => {
+  res.json({ msg: 'hello from server' });
+});
+
 // Mount API routes
 app.use('/api/projects', projectsRouter);
+app.use('/api/projects', membersRouter);
+app.use('/api/projects', tasksRouter);
+app.use('/api/projects', commentsRouter);
+app.use('/api/notifications', notificationsRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {
