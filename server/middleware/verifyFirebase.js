@@ -1,73 +1,39 @@
 const admin = require('firebase-admin');
-const User = require('../models/User');
 
 const verifyFirebase = async (req, res, next) => {
   try {
+    // Read Bearer token from Authorization header
     const authHeader = req.headers.authorization;
     
-    // Check for Authorization header
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Missing or malformed Authorization header' });
+      return res.status(401).json({ error: "No auth token" });
     }
 
-    // Extract token from "Bearer <idToken>" format
-    const idToken = authHeader.split(' ')[1];
+    const token = authHeader.split(' ')[1];
     
-    if (!idToken) {
-      return res.status(401).json({ error: 'Missing or malformed Authorization header' });
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
     }
 
-    // Check if Firebase Admin is initialized
+    // Check if admin is initialized
     if (!admin.apps || admin.apps.length === 0) {
       console.error('Firebase Admin not initialized');
-      return res.status(500).json({ error: 'Auth not configured on server' });
+      return res.status(500).json({ error: "Server misconfigured" });
     }
 
     // Verify the Firebase ID token
-    let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(idToken);
-    } catch (error) {
-      console.error('Token verification failed:', error.message);
-      return res.status(401).json({ error: 'Invalid or expired ID token' });
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      req.user = decodedToken; // Attach user info to request
+      next();
+    } catch (verifyError) {
+      console.error('Token verification failed:', verifyError.message);
+      return res.status(401).json({ error: "Invalid or expired token" });
     }
-
-    // Extract uid from decoded token
-    const { uid, email, name } = decodedToken;
-    
-    if (!uid) {
-      return res.status(401).json({ error: 'Invalid or expired ID token' });
-    }
-
-    // Find or create user in database by firebaseUid
-    let user;
-    try {
-      user = await User.findOne({ firebaseUid: uid });
-      
-      if (!user) {
-        // Create new user from Firebase token data with fallback name
-        const userName = name || email || 'Unnamed User';
-        user = await User.create({
-          firebaseUid: uid,
-          name: userName,
-          email: email || '',
-          createdAt: new Date()
-        });
-      }
-    } catch (error) {
-      console.error('Database error in auth middleware:', error);
-      return res.status(500).json({ error: 'Internal server error in auth middleware' });
-    }
-
-    // Attach user info to request
-    req.auth = decodedToken;
-    req.userLocal = user;
-    
-    next();
     
   } catch (error) {
-    console.error('Unexpected error in auth middleware:', error);
-    res.status(500).json({ error: 'Internal server error in auth middleware' });
+    console.error('Auth middleware error stack:', error.stack);
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
 };
 

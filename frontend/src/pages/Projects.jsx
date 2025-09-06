@@ -1,201 +1,234 @@
 import React, { useState, useEffect } from 'react';
-import api from '../lib/api';
+import { useNavigate } from 'react-router-dom';
+import { fetchProjects, createProject } from '../lib/api';
+import { getAuth } from 'firebase/auth';
 
 const Projects = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [creating, setCreating] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: ''
-  });
+  const [projectName, setProjectName] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const fetchProjects = async () => {
+  // Get ID token from Firebase Auth or localStorage
+  const getIdToken = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        return await user.getIdToken();
+      } else {
+        // Fallback to localStorage
+        return localStorage.getItem('idToken');
+      }
+    } catch (error) {
+      console.error('Error getting ID token:', error);
+      return localStorage.getItem('idToken');
+    }
+  };
+
+  // Load projects on component mount
+  const loadProjects = async () => {
     try {
       setLoading(true);
       setError('');
-      console.log('Fetching projects...');
       
-      const response = await api.get('/projects');
-      console.log('Projects response:', response.data);
+      const idToken = await getIdToken();
       
-      // Handle different response structures defensively
-      let projectsData = [];
-      if (response?.data) {
-        if (Array.isArray(response.data)) {
-          projectsData = response.data;
-        } else if (Array.isArray(response.data.projects)) {
-          projectsData = response.data.projects;
-        } else if (response.data.data && Array.isArray(response.data.data)) {
-          projectsData = response.data.data;
-        }
+      // If no token, redirect to login
+      if (!idToken) {
+        window.location = '/login';
+        return;
       }
-      
-      setProjects(projectsData);
-      console.log('Set projects state:', projectsData);
+
+      const data = await fetchProjects(idToken);
+      setProjects(data || []);
       
     } catch (err) {
-      console.error('Error fetching projects:', err);
-      const errorMessage = err?.response?.data?.error || err?.message || 'Failed to load projects';
-      setError(errorMessage);
-      setProjects([]);
+      console.error('Error loading projects:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to load projects');
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle project creation
   const handleCreateProject = async (e) => {
     e.preventDefault();
     
-    if (!formData.name.trim()) {
+    if (!projectName.trim()) {
       setError('Project name is required');
       return;
     }
     
     setCreating(true);
     setError('');
+    setSuccess('');
 
     try {
-      console.log('Creating project:', formData);
+      const idToken = await getIdToken();
       
-      const response = await api.post('/projects', {
-        name: formData.name.trim(),
-        description: formData.description.trim()
-      });
+      if (!idToken) {
+        window.location = '/login';
+        return;
+      }
+
+      const newProject = await createProject({ name: projectName.trim() }, idToken);
       
-      console.log('Project created successfully:', response.data);
+      // Add to local list and clear form
+      setProjects(prev => [...prev, newProject]);
+      setProjectName('');
+      setSuccess('Project created successfully!');
       
-      // Reset form
-      setFormData({ name: '', description: '' });
-      
-      // Refresh projects list
-      await fetchProjects();
+      // Navigate to project detail
+      setTimeout(() => {
+        navigate(`/projects/${newProject.id}`);
+      }, 1000);
       
     } catch (err) {
       console.error('Error creating project:', err);
-      const errorMessage = err?.response?.data?.error || err?.message || 'Failed to create project';
-      setError(errorMessage);
+      setError(err.response?.data?.error || err.message || 'Failed to create project');
     } finally {
       setCreating(false);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  // Retry loading projects
+  const handleRetry = () => {
+    loadProjects();
   };
 
   useEffect(() => {
-    fetchProjects();
+    loadProjects();
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 p-6">
-      <h1 className="text-3xl font-bold mb-8">Projects</h1>
+    <div style={{ maxWidth: '800px', margin: '20px auto', padding: '20px' }}>
+      <h1 style={{ marginBottom: '30px', color: '#333' }}>Projects</h1>
 
-      {/* Global Error Display */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          <strong>Error:</strong> {error}
+      {/* Success message */}
+      {success && (
+        <div style={{ 
+          padding: '10px', 
+          backgroundColor: '#d4edda', 
+          color: '#155724', 
+          border: '1px solid #c3e6cb',
+          borderRadius: '4px',
+          marginBottom: '20px'
+        }}>
+          {success}
         </div>
       )}
 
-      {/* Create Project Form */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Create New Project</h2>
-        
-        <form onSubmit={handleCreateProject} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Project Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter project name"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter project description (optional)"
-            />
-          </div>
-          
+      {/* Error message */}
+      {error && (
+        <div style={{ 
+          padding: '10px', 
+          backgroundColor: '#f8d7da', 
+          color: '#721c24', 
+          border: '1px solid #f5c6cb',
+          borderRadius: '4px',
+          marginBottom: '20px'
+        }}>
+          {error}
+          {!loading && (
+            <button 
+              onClick={handleRetry}
+              style={{ 
+                marginLeft: '10px', 
+                padding: '5px 10px',
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '3px',
+                cursor: 'pointer'
+              }}
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Create project form */}
+      <div style={{ 
+        backgroundColor: '#f8f9fa', 
+        padding: '20px', 
+        borderRadius: '4px',
+        marginBottom: '30px',
+        border: '1px solid #e9ecef'
+      }}>
+        <h3 style={{ marginBottom: '15px', color: '#495057' }}>Create New Project</h3>
+        <form onSubmit={handleCreateProject} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input
+            type="text"
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            placeholder="Enter project name"
+            style={{ 
+              flex: 1,
+              padding: '8px 12px',
+              border: '1px solid #ced4da',
+              borderRadius: '4px',
+              fontSize: '14px'
+            }}
+            disabled={creating}
+          />
           <button
             type="submit"
             disabled={creating}
-            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ 
+              padding: '8px 16px',
+              backgroundColor: creating ? '#6c757d' : '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: creating ? 'not-allowed' : 'pointer',
+              fontSize: '14px'
+            }}
           >
-            {creating ? 'Creating...' : 'Create Project'}
+            {creating ? 'Creating...' : 'Create'}
           </button>
         </form>
       </div>
 
-      {/* Projects List */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4">Your Projects</h2>
+      {/* Projects list */}
+      <div>
+        <h3 style={{ marginBottom: '15px', color: '#495057' }}>Your Projects</h3>
         
         {loading ? (
-          <div className="text-center py-8">
-            <div className="text-gray-500">Loading projects...</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6c757d' }}>
+            <div>⏳ Loading projects...</div>
           </div>
-        ) : !Array.isArray(projects) || projects.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-gray-500">
-              {!Array.isArray(projects) 
-                ? 'Error loading projects data' 
-                : 'No projects found. Create your first project above!'
-              }
-            </div>
+        ) : projects.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6c757d' }}>
+            No projects yet. Create your first project above!
           </div>
         ) : (
-          <div className="space-y-4">
-            {projects.map((project, index) => {
-              // Defensive rendering in case project data is malformed
-              if (!project || typeof project !== 'object') {
-                return (
-                  <div key={index} className="border border-red-200 rounded-lg p-4 bg-red-50">
-                    <p className="text-red-600">Invalid project data</p>
-                  </div>
-                );
-              }
-              
-              return (
-                <div key={project._id || project.id || index} className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold">
-                    {project.name || 'Unnamed Project'}
-                  </h3>
-                  {project.description && (
-                    <p className="text-gray-600 mt-2">{project.description}</p>
-                  )}
-                  <div className="text-sm text-gray-500 mt-2">
-                    Created: {project.createdAt 
-                      ? new Date(project.createdAt).toLocaleDateString() 
-                      : 'Unknown'
-                    }
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {projects.map((project) => (
+              <div
+                key={project.id}
+                style={{ 
+                  padding: '15px',
+                  backgroundColor: 'white',
+                  border: '1px solid #e9ecef',
+                  borderRadius: '4px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 5px 0', color: '#495057' }}>{project.name}</h4>
+                    <small style={{ color: '#6c757d' }}>
+                      ID: {project.id} | Owner: {project.owner}
+                    </small>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>

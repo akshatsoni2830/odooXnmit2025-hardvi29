@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
 import { auth } from '../lib/firebase';
 
 const Login = () => {
@@ -12,125 +12,67 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
 
     try {
-      console.log('Attempting login for:', email);
-      
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      console.log('Login successful:', {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName
-      });
-      
-      // Get and log the ID token
-      const idToken = await user.getIdToken();
-      console.log('ID Token obtained, length:', idToken.length);
-      
-      // Navigate to projects page on successful login
-      console.log('Navigating to /projects');
+      await signInWithEmailAndPassword(auth, email, password);
       navigate('/projects');
-      
-    } catch (error) {
-      console.error('Login error:', error);
-      
-      // Provide user-friendly error messages
-      let errorMessage = 'Login failed';
-      
-      switch (error.code) {
-        case 'auth/user-not-found':
-          errorMessage = 'No account found with this email address';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = 'Incorrect password';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Invalid email address';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = 'This account has been disabled';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Too many failed attempts. Please try again later';
-          break;
-        default:
-          errorMessage = error.message || 'An error occurred during login';
-      }
-      
-      setError(errorMessage);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
+      <h2>Sign In</h2>
+      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
       
-      {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            Email Address
-          </label>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '15px' }}>
           <input
             type="email"
-            id="email"
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            disabled={loading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-            placeholder="Enter your email"
+            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
           />
         </div>
         
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-            Password
-          </label>
+        <div style={{ marginBottom: '15px' }}>
           <input
             type="password"
-            id="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            disabled={loading}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-            placeholder="Enter your password"
+            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
           />
         </div>
         
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            width: '100%',
+            padding: '10px',
+            background: '#2563eb',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Signing In...' : 'Sign In'}
         </button>
       </form>
       
-      <div className="mt-4 text-center">
-        <p className="text-sm text-gray-600">
-          Don't have an account?{' '}
-          <button
-            type="button"
-            onClick={() => navigate('/signup')}
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Sign up here
-          </button>
-        </p>
-      </div>
+      <p style={{ textAlign: 'center', marginTop: '20px' }}>
+        Don't have an account? <Link to="/signup">Sign up</Link>
+      </p>
     </div>
   );
 };
