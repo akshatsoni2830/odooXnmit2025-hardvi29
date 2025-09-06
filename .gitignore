@@ -1,0 +1,27 @@
+ # Node
+node_modules/
+package-lock.json
+yarn.lock
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+
+# Firebase / Google service account
+server/serviceAccountKey.json
+.firebase.*
+.gcloud.*
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
