@@ -51,28 +51,71 @@ const NotificationsBell = ({ idToken }) => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="relative">
+    <div style={{ position: 'relative' }}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
+        style={{
+          position: 'relative',
+          padding: '0.5rem',
+          color: 'var(--muted)',
+          border: 'none',
+          background: 'none',
+          cursor: 'pointer',
+          fontSize: '1.25rem'
+        }}
+        onMouseEnter={(e) => e.target.style.color = 'var(--brand)'}
+        onMouseLeave={(e) => e.target.style.color = 'var(--muted)'}
       >
         🔔
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <span style={{
+            position: 'absolute',
+            top: '-2px',
+            right: '-2px',
+            backgroundColor: '#ef4444',
+            color: 'white',
+            fontSize: '0.75rem',
+            borderRadius: '50%',
+            height: '20px',
+            width: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 'bold'
+          }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-          <div className="p-4 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium text-gray-900">Notifications</h3>
+        <div style={{
+          position: 'absolute',
+          right: 0,
+          top: '100%',
+          marginTop: '0.5rem',
+          width: '320px',
+          backgroundColor: 'white',
+          borderRadius: '0.5rem',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+          border: '1px solid #e5e7eb',
+          zIndex: 50
+        }}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontWeight: '500', color: '#1f2937' }}>Notifications</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'var(--brand)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#1d4ed8'}
+                  onMouseLeave={(e) => e.target.style.color = 'var(--brand)'}
                 >
                   Mark all as read
                 </button>
@@ -80,29 +123,51 @@ const NotificationsBell = ({ idToken }) => {
             </div>
           </div>
           
-          <div className="max-h-96 overflow-y-auto">
+          <div style={{ maxHeight: '384px', overflowY: 'auto' }}>
             {loading ? (
-              <div className="p-4 text-center text-gray-500">Loading...</div>
+              <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--muted)' }}>Loading...</div>
             ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">No notifications</div>
+              <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--muted)' }}>No notifications</div>
             ) : (
               notifications.map(notification => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                    !notification.read ? 'bg-blue-50' : ''
-                  }`}
+                  style={{
+                    padding: '1rem',
+                    borderBottom: '1px solid #f3f4f6',
+                    cursor: 'pointer',
+                    backgroundColor: !notification.read ? '#eff6ff' : 'white',
+                    transition: 'background-color 0.2s'
+                  }}
                   onClick={() => handleMarkAsRead([notification.id])}
+                  onMouseEnter={(e) => {
+                    if (notification.read) {
+                      e.target.style.backgroundColor = '#f9fafb';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (notification.read) {
+                      e.target.style.backgroundColor = 'white';
+                    }
+                  }}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">{notification.text}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '0.875rem', color: '#1f2937', marginBottom: '0.25rem' }}>{notification.text}</p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
                         {new Date(notification.ts).toLocaleString()}
                       </p>
                     </div>
                     {!notification.read && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-1"></div>
+                      <div style={{
+                        width: '8px',
+                        height: '8px',
+                        backgroundColor: 'var(--brand)',
+                        borderRadius: '50%',
+                        marginLeft: '0.5rem',
+                        marginTop: '0.25rem',
+                        flexShrink: 0
+                      }}></div>
                     )}
                   </div>
                 </div>

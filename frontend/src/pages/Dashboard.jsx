@@ -70,219 +70,238 @@ const Dashboard = () => {
   const unreadNotifications = notifications.filter(n => !n.read);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">SynergySphere</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <NotificationsBell idToken={idToken} />
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-700">Welcome, {user?.displayName || user?.email}</span>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-gray-600 hover:text-gray-900"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
+      <header className="navbar">
+        <div className="nav-container">
+          <div className="brand">SynergySphere</div>
+          <div className="nav-buttons">
+            <NotificationsBell idToken={idToken} />
+            <span style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
+              Welcome, {user?.displayName || user?.email}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="btn btn-outline"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.displayName || 'User'}!
-          </h2>
-          <p className="text-gray-600">Here's what's happening with your projects today.</p>
+        <div className="hero" style={{ padding: '2rem 0', textAlign: 'left' }}>
+          <div className="hero-container">
+            <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', background: 'none', color: '#1f2937' }}>
+              Welcome back, {user?.displayName || 'User'}!
+            </h1>
+            <p style={{ color: 'var(--muted)', fontSize: '1.125rem' }}>
+              Here's what's happening with your projects today.
+            </p>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <span className="text-2xl">📁</span>
+        <div className="stats">
+          <div className="stats-container">
+            <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+              <div className="stat-card">
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📁</div>
+                <div className="stat-number">{projects.length}</div>
+                <div className="stat-label">Total Projects</div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Projects</p>
-                <p className="text-2xl font-bold text-gray-900">{projects.length}</p>
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <span className="text-2xl">✅</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed Tasks</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="stat-card">
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
+                <div className="stat-number">
                   {projects.reduce((acc, project) => acc + (project.tasks?.filter(t => t.status === 'Done').length || 0), 0)}
-                </p>
+                </div>
+                <div className="stat-label">Completed Tasks</div>
               </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <span className="text-2xl">⏳</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold text-gray-900">
+              <div className="stat-card">
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+                <div className="stat-number">
                   {projects.reduce((acc, project) => acc + (project.tasks?.filter(t => t.status === 'In Progress').length || 0), 0)}
-                </p>
+                </div>
+                <div className="stat-label">In Progress</div>
               </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <span className="text-2xl">🔔</span>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Notifications</p>
-                <p className="text-2xl font-bold text-gray-900">{unreadNotifications.length}</p>
+              <div className="stat-card">
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔔</div>
+                <div className="stat-number">{unreadNotifications.length}</div>
+                <div className="stat-label">Notifications</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Projects */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Recent Projects</h3>
-                <button
-                  onClick={() => navigate('/projects')}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  View all
-                </button>
-              </div>
-            </div>
-            <div className="p-6">
-              {recentProjects.length === 0 ? (
-                <div className="text-center py-8">
-                  <span className="text-4xl mb-4 block">📁</span>
-                  <p className="text-gray-500 mb-4">No projects yet</p>
+        <div className="features" style={{ padding: '2rem 0' }}>
+          <div className="features-container">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+              {/* Recent Projects */}
+              <div className="feature-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Recent Projects</h3>
                   <button
                     onClick={() => navigate('/projects')}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                    className="btn btn-outline"
+                    style={{ fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}
                   >
-                    Create your first project
+                    View all
                   </button>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {recentProjects.map(project => (
-                    <div
-                      key={project.id}
-                      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                      onClick={() => navigate(`/projects/${project.id}`)}
-                    >
-                      <div>
-                        <h4 className="font-medium text-gray-900">{project.name}</h4>
-                        <p className="text-sm text-gray-600">{project.description}</p>
-                        <p className="text-xs text-gray-500">
-                          {project.members?.length || 0} members • {project.tasks?.length || 0} tasks
-                        </p>
-                      </div>
-                      <span className="text-gray-400">→</span>
+                <div>
+                  {recentProjects.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📁</div>
+                      <p style={{ color: 'var(--muted)', marginBottom: '1rem' }}>No projects yet</p>
+                      <button
+                        onClick={() => navigate('/projects')}
+                        className="btn btn-primary"
+                      >
+                        Create your first project
+                      </button>
                     </div>
-                  ))}
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {recentProjects.map(project => (
+                        <div
+                          key={project.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '1rem',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.5rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                          onClick={() => navigate(`/projects/${project.id}`)}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#f9fafb';
+                            e.target.style.transform = 'translateY(-1px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'white';
+                            e.target.style.transform = 'translateY(0)';
+                          }}
+                        >
+                          <div>
+                            <h4 style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{project.name}</h4>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>{project.description}</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                              {project.members?.length || 0} members • {project.tasks?.length || 0} tasks
+                            </p>
+                          </div>
+                          <span style={{ color: 'var(--muted)' }}>→</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Recent Notifications */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Recent Notifications</h3>
-                <button
-                  onClick={() => navigate('/projects')}
-                  className="text-sm text-blue-600 hover:text-blue-800"
-                >
-                  View all
-                </button>
               </div>
-            </div>
-            <div className="p-6">
-              {unreadNotifications.length === 0 ? (
-                <div className="text-center py-8">
-                  <span className="text-4xl mb-4 block">🔔</span>
-                  <p className="text-gray-500">No new notifications</p>
+
+              {/* Recent Notifications */}
+              <div className="feature-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Recent Notifications</h3>
+                  <button
+                    onClick={() => navigate('/projects')}
+                    className="btn btn-outline"
+                    style={{ fontSize: '0.875rem', padding: '0.25rem 0.75rem' }}
+                  >
+                    View all
+                  </button>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {unreadNotifications.slice(0, 5).map(notification => (
-                    <div key={notification.id} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">{notification.text}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(notification.ts).toLocaleString()}
-                        </p>
-                      </div>
+                <div>
+                  {unreadNotifications.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '2rem 0' }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔔</div>
+                      <p style={{ color: 'var(--muted)' }}>No new notifications</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {unreadNotifications.slice(0, 5).map(notification => (
+                        <div key={notification.id} style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '0.75rem',
+                          padding: '0.75rem',
+                          backgroundColor: '#eff6ff',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #dbeafe'
+                        }}>
+                          <div style={{
+                            width: '8px',
+                            height: '8px',
+                            backgroundColor: 'var(--brand)',
+                            borderRadius: '50%',
+                            marginTop: '0.5rem',
+                            flexShrink: 0
+                          }}></div>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>{notification.text}</p>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                              {new Date(notification.ts).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => navigate('/projects')}
-              className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-            >
-              <span className="text-2xl mr-3">➕</span>
-              <div className="text-left">
-                <p className="font-medium text-gray-900">Create Project</p>
-                <p className="text-sm text-gray-600">Start a new project</p>
-              </div>
-            </button>
+        <div className="features" style={{ padding: '2rem 0', backgroundColor: 'var(--bg)' }}>
+          <div className="features-container">
+            <h2 style={{ textAlign: 'center', fontSize: '2rem', marginBottom: '2rem' }}>Quick Actions</h2>
+            <div className="features-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
+              <button
+                onClick={() => navigate('/projects')}
+                className="feature-card"
+                style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem' }}
+              >
+                <span style={{ fontSize: '2rem' }}>➕</span>
+                <div>
+                  <h3 style={{ marginBottom: '0.5rem' }}>Create Project</h3>
+                  <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Start a new project</p>
+                </div>
+              </button>
 
-            <button
-              onClick={() => navigate('/projects')}
-              className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-            >
-              <span className="text-2xl mr-3">📋</span>
-              <div className="text-left">
-                <p className="font-medium text-gray-900">View Projects</p>
-                <p className="text-sm text-gray-600">Manage your projects</p>
-              </div>
-            </button>
+              <button
+                onClick={() => navigate('/projects')}
+                className="feature-card"
+                style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem' }}
+              >
+                <span style={{ fontSize: '2rem' }}>📋</span>
+                <div>
+                  <h3 style={{ marginBottom: '0.5rem' }}>View Projects</h3>
+                  <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Manage your projects</p>
+                </div>
+              </button>
 
-            <button
-              onClick={() => navigate('/profile')}
-              className="flex items-center p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
-            >
-              <span className="text-2xl mr-3">👤</span>
-              <div className="text-left">
-                <p className="font-medium text-gray-900">Profile</p>
-                <p className="text-sm text-gray-600">Manage your account</p>
-              </div>
-            </button>
+              <button
+                onClick={() => navigate('/profile')}
+                className="feature-card"
+                style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '1rem' }}
+              >
+                <span style={{ fontSize: '2rem' }}>👤</span>
+                <div>
+                  <h3 style={{ marginBottom: '0.5rem' }}>Profile</h3>
+                  <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Manage your account</p>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
       </main>
