@@ -33,9 +33,9 @@ router.post('/:projectId/members', verifyFirebase, (req, res) => {
       return res.status(400).json({ error: 'Member already exists' });
     }
 
-    // Add new member (in real app, would verify email exists in system)
+    // Add new member
     const newMember = {
-      uid: generateId(), // In real app, would be actual user UID
+      uid: generateId(),
       email: email.trim().toLowerCase(),
       role: role
     };
@@ -49,12 +49,12 @@ router.post('/:projectId/members', verifyFirebase, (req, res) => {
 
     return res.status(201).json(project);
   } catch (error) {
-    console.error('Error adding member:', error);
+    console.error('Error adding member:', error.stack);
     return res.status(500).json({ error: 'Failed to add member' });
   }
 });
 
-// DELETE /api/projects/:projectId/members/:email - remove member (owner only)
+// DELETE /api/projects/:projectId/members/:email - remove member
 router.delete('/:projectId/members/:email', verifyFirebase, (req, res) => {
   try {
     const { projectId, email } = req.params;
@@ -89,7 +89,7 @@ router.delete('/:projectId/members/:email', verifyFirebase, (req, res) => {
 
     return res.json(project);
   } catch (error) {
-    console.error('Error removing member:', error);
+    console.error('Error removing member:', error.stack);
     return res.status(500).json({ error: 'Failed to remove member' });
   }
 });
